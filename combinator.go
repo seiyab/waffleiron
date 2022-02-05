@@ -109,6 +109,27 @@ func (p repeatParser[T]) Parse(r *Reader) ([]T, error) {
 	}
 }
 
+func Maybe[T any](p Parser[T]) Parser[*T] {
+	return maybeParser[T]{p}
+}
+
+type maybeParser[T any] struct {
+	p Parser[T]
+}
+
+func (p maybeParser[T]) Parse(r *Reader) (*T, error) {
+	var v T
+	err := r.Try(func() error {
+		var e error
+		v, e = p.p.Parse(r)
+		return e
+	})
+	if err != nil {
+		return nil, nil
+	}
+	return &v, nil
+}
+
 func Trace[T any](name string, p Parser[T]) Parser[T] {
 	return traceParser[T]{name, p}
 }

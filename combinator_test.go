@@ -166,50 +166,6 @@ func TestAnd3(t *testing.T) {
 	})
 }
 
-func TestRepeat(t *testing.T) {
-	t.Run("Repeat(Rune)", func(t *testing.T) {
-		p := wi.Repeat(wi.Rune('a'))
-
-		t.Run("ok", func(t *testing.T) {
-			testCases := []string{
-				"",
-				"a",
-				"aaa",
-				"aaaaaaaaaaa",
-			}
-
-			for _, tt := range testCases {
-				t.Run(tt, func(t *testing.T) {
-					v, err := wi.Parse(tt, p)
-					if err != nil {
-						t.Fatal(err)
-					}
-					if len(v) != len(tt) {
-						t.Errorf("len(v) = %d, want %d", len(v), len(tt))
-					}
-				})
-			}
-		})
-
-		t.Run("error", func(t *testing.T) {
-			testCases := []string{
-				"b",
-				"xaaaa",
-				"aaaax",
-			}
-
-			for _, tt := range testCases {
-				t.Run(tt, func(t *testing.T) {
-					_, err := wi.Parse(tt, p)
-					if err == nil {
-						t.Error("expected error")
-					}
-				})
-			}
-		})
-	})
-}
-
 func TestOr(t *testing.T) {
 	p := wi.Or(
 		wi.String("waffleiron"),
@@ -258,6 +214,72 @@ func TestOr(t *testing.T) {
 			})
 		}
 
+	})
+}
+
+func TestMaybe(t *testing.T) {
+	p := wi.Maybe(wi.String("waffle"))
+
+	t.Run("ok", func(t *testing.T) {
+		testCases := []string{
+			"waffle",
+			"",
+		}
+		for _, tt := range testCases {
+			t.Run(tt, func(t *testing.T) {
+				v, err := wi.Parse(tt, p)
+				if err != nil {
+					t.Fatal(err)
+				}
+				if (v == nil) != (tt == "") {
+					t.Error("unexpected v")
+				}
+			})
+		}
+	})
+}
+
+func TestRepeat(t *testing.T) {
+	t.Run("Repeat(Rune)", func(t *testing.T) {
+		p := wi.Repeat(wi.Rune('a'))
+
+		t.Run("ok", func(t *testing.T) {
+			testCases := []string{
+				"",
+				"a",
+				"aaa",
+				"aaaaaaaaaaa",
+			}
+
+			for _, tt := range testCases {
+				t.Run(tt, func(t *testing.T) {
+					v, err := wi.Parse(tt, p)
+					if err != nil {
+						t.Fatal(err)
+					}
+					if len(v) != len(tt) {
+						t.Errorf("len(v) = %d, want %d", len(v), len(tt))
+					}
+				})
+			}
+		})
+
+		t.Run("error", func(t *testing.T) {
+			testCases := []string{
+				"b",
+				"xaaaa",
+				"aaaax",
+			}
+
+			for _, tt := range testCases {
+				t.Run(tt, func(t *testing.T) {
+					_, err := wi.Parse(tt, p)
+					if err == nil {
+						t.Error("expected error")
+					}
+				})
+			}
+		})
 	})
 }
 
