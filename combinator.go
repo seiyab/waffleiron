@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 )
 
-func And[T, U any](p0 Parser[T], p1 Parser[U]) Parser[Pair[T, U]] {
+func And[T, U any](p0 Parser[T], p1 Parser[U]) Parser[Tuple2[T, U]] {
 	return andParser[T, U]{p0, p1}
 }
 
@@ -15,16 +15,42 @@ type andParser[T, U any] struct {
 	p1 Parser[U]
 }
 
-func (p andParser[T, U]) Parse(r *Reader) (Pair[T, U], error) {
+func (p andParser[T, U]) Parse(r *Reader) (Tuple2[T, U], error) {
 	a, err := p.p0.Parse(r)
 	if err != nil {
-		return Pair[T, U]{}, err
+		return Tuple2[T, U]{}, err
 	}
 	b, err := p.p1.Parse(r)
 	if err != nil {
-		return Pair[T, U]{}, err
+		return Tuple2[T, U]{}, err
 	}
-	return Pair[T, U]{A: a, B: b}, nil
+	return NewTuple2(a, b), nil
+}
+
+func And3[T, U, V any](p0 Parser[T], p1 Parser[U], p2 Parser[V]) Parser[Tuple3[T, U, V]] {
+	return and3Parser[T, U, V]{p0, p1, p2}
+}
+
+type and3Parser[T, U, V any] struct {
+	p0 Parser[T]
+	p1 Parser[U]
+	p2 Parser[V]
+}
+
+func (p and3Parser[T, U, V]) Parse(r *Reader) (Tuple3[T, U, V], error) {
+	v0, err := p.p0.Parse(r)
+	if err != nil {
+		return Tuple3[T, U, V]{}, err
+	}
+	v1, err := p.p1.Parse(r)
+	if err != nil {
+		return Tuple3[T, U, V]{}, err
+	}
+	v2, err := p.p2.Parse(r)
+	if err != nil {
+		return Tuple3[T, U, V]{}, err
+	}
+	return NewTuple3(v0, v1, v2), nil
 }
 
 func Or[T any](p0 Parser[T], ps ...Parser[T]) Parser[T] {

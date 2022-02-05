@@ -51,11 +51,11 @@ func TestAnd(t *testing.T) {
 					if err != nil {
 						t.Fatal(err)
 					}
-					if v.A != tt.a {
-						t.Errorf("v.A = %q, want %q", v.A, tt.a)
+					if v.Get0() != tt.a {
+						t.Errorf("v.Get0() = %q, want %q", v.Get0(), tt.a)
 					}
-					if v.B != tt.b {
-						t.Errorf("v.B = %q, want %q", v.B, tt.b)
+					if v.Get1() != tt.b {
+						t.Errorf("v.Get1() = %q, want %q", v.Get1(), tt.b)
 					}
 				}
 			})
@@ -112,12 +112,54 @@ func TestAnd(t *testing.T) {
 					if err != nil {
 						t.Fatal(err)
 					}
-					if v.A != tt.a {
-						t.Errorf("v.A = %q, want %q", v.A, tt.a)
+					if v.Get0() != tt.a {
+						t.Errorf("v.Get0() = %q, want %q", v.Get0(), tt.a)
 					}
-					if v.B != tt.b {
-						t.Errorf("v.B = %q, want %q", v.B, tt.b)
+					if v.Get1() != tt.b {
+						t.Errorf("v.Get1() = %q, want %q", v.Get1(), tt.b)
 					}
+				}
+			})
+		}
+	})
+}
+
+func TestAnd3(t *testing.T) {
+	p := wi.And3(
+		wi.Rune('w'),
+		wi.Rune('a'),
+		wi.Rune('f'),
+	)
+
+	t.Run("ok", func(t *testing.T) {
+		v, err := wi.Parse("waf", p)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if v.Get0() != 'w' {
+			t.Errorf("v.Get0() = %q, want %q", v.Get0(), 'w')
+		}
+		if v.Get1() != 'a' {
+			t.Errorf("v.Get1() = %q, want %q", v.Get1(), 'a')
+		}
+		if v.Get2() != 'f' {
+			t.Errorf("v.Get2() = %q, want %q", v.Get2(), 'f')
+		}
+	})
+
+	t.Run("error", func(t *testing.T) {
+		testCases := []string{
+			"w",
+			"waffle",
+			"x",
+		}
+
+		for _, tt := range testCases {
+			t.Run(tt, func(t *testing.T) {
+				_, err := wi.Parse(tt, p)
+
+				if err == nil {
+					t.Errorf("expected error")
 				}
 			})
 		}
