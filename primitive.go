@@ -6,16 +6,10 @@ import (
 	"github.com/pkg/errors"
 )
 
-type FuncParser[T any] struct {
-	parse func(r *Reader) (T, error)
-}
-
-func NewParser[T any](parse func(r *Reader) (T, error)) FuncParser[T] {
-	return FuncParser[T]{parse}
-}
+type FuncParser[T any] func(r *Reader) (T, error)
 
 func (p FuncParser[T]) Parse(r *Reader) (T, error) {
-	return p.parse(r)
+	return p(r)
 }
 
 func Rune(rn rune) Parser[rune] {

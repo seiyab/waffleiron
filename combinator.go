@@ -5,7 +5,7 @@ import (
 )
 
 func And[T, U any](p1 Parser[T], p2 Parser[U]) Parser[Pair[T, U]] {
-	return NewParser(func(rd *Reader) (Pair[T, U], error) {
+	return FuncParser[Pair[T, U]](func(rd *Reader) (Pair[T, U], error) {
 		a, err := p1.Parse(rd)
 		if err != nil {
 			return Pair[T, U]{}, err
@@ -19,7 +19,7 @@ func And[T, U any](p1 Parser[T], p2 Parser[U]) Parser[Pair[T, U]] {
 }
 
 func Trace[T any](name string, p Parser[T]) Parser[T] {
-	return NewParser(func(rd *Reader) (T, error) {
+	return FuncParser[T](func(rd *Reader) (T, error) {
 		var t T
 		var err error
 		rd.WithTrace(name, func() {
