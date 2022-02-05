@@ -13,14 +13,14 @@ func (p FuncParser[T]) Parse(r *Reader) (T, error) {
 }
 
 func Rune(rn rune) Parser[rune] {
-	return RuneParser{rn}
+	return runeParser{rn}
 }
 
-type RuneParser struct {
+type runeParser struct {
 	rn rune
 }
 
-func (p RuneParser) Parse(r *Reader) (rune, error) {
+func (p runeParser) Parse(r *Reader) (rune, error) {
 	ch, _, err := r.ReadRune()
 	if err != nil {
 		return 0, errors.Wrapf(err, "at %s", r.pos)
@@ -32,14 +32,14 @@ func (p RuneParser) Parse(r *Reader) (rune, error) {
 }
 
 func String(str string) Parser[string] {
-	return StringParser{str}
+	return stringParser{str}
 }
 
-type StringParser struct {
+type stringParser struct {
 	str string
 }
 
-func (p StringParser) Parse(r *Reader) (string, error) {
+func (p stringParser) Parse(r *Reader) (string, error) {
 	overrun := int64(len(p.str)) > int64(len(r.str))-r.idx
 	if overrun || !strings.HasPrefix(r.str[r.idx:], p.str) {
 		return "", errors.Errorf("expected %q, but not found at %s", p.str, r.pos)
