@@ -124,6 +124,57 @@ func TestAnd(t *testing.T) {
 	})
 }
 
+func TestOr(t *testing.T) {
+	p := wi.Or(
+		wi.String("waffleiron"),
+		wi.String("waffle"),
+		wi.String("iron"),
+		wi.String("parser"),
+	)
+
+	t.Run("ok", func(t *testing.T) {
+		testCases := []string{
+			"waffleiron",
+			"waffle",
+			"iron",
+			"parser",
+		}
+
+		for _, tt := range testCases {
+			t.Run(tt, func(t *testing.T) {
+				v, err := wi.Parse(tt, p)
+
+				if err != nil {
+					t.Fatal(err)
+				}
+				if v != tt {
+					t.Errorf("v = %q, want %q", v, tt)
+				}
+			})
+		}
+	})
+
+	t.Run("error", func(t *testing.T) {
+		testCases := []string{
+			"",
+			"_waffleiron",
+			"parsers",
+			"p",
+		}
+
+		for _, tt := range testCases {
+			t.Run(tt, func(t *testing.T) {
+				_, err := wi.Parse(tt, p)
+
+				if err == nil {
+					t.Fatal("expected error")
+				}
+			})
+		}
+
+	})
+}
+
 func TestTrace(t *testing.T) {
 	p := wi.And(
 		wi.Trace("A", wi.String("waffle")),
