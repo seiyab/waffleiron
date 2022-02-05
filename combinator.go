@@ -84,6 +84,31 @@ func (p orParser[T]) Parse(r *Reader) (T, error) {
 	return *new(T), totalErr
 }
 
+func Repeat[T any](p Parser[T]) Parser[[]T] {
+	return repeatParser[T]{p}
+}
+
+type repeatParser[T any] struct {
+	p Parser[T]
+}
+
+func (p repeatParser[T]) Parse(r *Reader) ([]T, error) {
+	ts := make([]T, 0)
+	for {
+		err := r.Try(func() error {
+			t, e := p.p.Parse(r)
+			if e != nil {
+				return e
+			}
+			ts = append(ts, t)
+			return nil
+		})
+		if err != nil {
+			return ts, nil
+		}
+	}
+}
+
 func Trace[T any](name string, p Parser[T]) Parser[T] {
 	return traceParser[T]{name, p}
 }
