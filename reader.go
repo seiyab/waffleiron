@@ -30,6 +30,10 @@ func (r *Reader) ReadRune() (rune, int, error) {
 	return c, s, nil
 }
 
+func (r *Reader) RemainingString() string {
+	return r.str[r.idx:]
+}
+
 func (r *Reader) SkipBytes(s int) error {
 	sr := strings.NewReader(r.str[r.idx : r.idx+int64(s)])
 	for {

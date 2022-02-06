@@ -1,6 +1,7 @@
 package waffleiron
 
 import (
+	"regexp"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -41,9 +42,30 @@ type stringParser struct {
 
 func (p stringParser) Parse(r *Reader) (string, error) {
 	overrun := int64(len(p.str)) > int64(len(r.str))-r.idx
-	if overrun || !strings.HasPrefix(r.str[r.idx:], p.str) {
+	if overrun || !strings.HasPrefix(r.RemainingString(), p.str) {
 		return "", errors.Errorf("expected %q, but not found at %s", p.str, r.pos)
 	}
 	r.SkipBytes(len(p.str))
 	return p.str, nil
+}
+
+func Regexp(re *regexp.Regexp) Parser[string] {
+	return regexpParser{re}
+}
+
+type regexpParser struct {
+	re *regexp.Regexp
+}
+
+func (p regexpParser) Parse(r *Reader) (string, error) {
+	str := r.RemainingString()
+	loc := p.re.FindStringIndex(str)
+	if len(loc) == 0 {
+		return "", errors.Errorf("expected to match %q at %s", p.re, r.pos)
+	}
+	if loc[0] != 0 {
+		panic("regex matched on loc[0] != 0. regexp for Parser should start with '^'.")
+	}
+	r.SkipBytes(loc[1])
+	return str, nil
 }
