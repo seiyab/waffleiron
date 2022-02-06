@@ -50,6 +50,11 @@ func (p stringParser) Parse(r *Reader) (string, error) {
 }
 
 func Regexp(re *regexp.Regexp) Parser[string] {
+	if !strings.HasPrefix(re.String(), "^") {
+		return regexpParser{
+			re: regexp.MustCompile("^" + re.String()),
+		}
+	}
 	return regexpParser{re}
 }
 
@@ -64,8 +69,12 @@ func (p regexpParser) Parse(r *Reader) (string, error) {
 		return "", errors.Errorf("expected to match %q at %s", p.re, r.pos)
 	}
 	if loc[0] != 0 {
-		panic("regex matched on loc[0] != 0. regexp for Parser should start with '^'.")
+		panic("regex matched on loc[0] != 0. it might be bug. please submit an issue.")
 	}
 	r.SkipBytes(loc[1])
 	return str, nil
+}
+
+func RegexpStr(str string) Parser[string] {
+	return Regexp(regexp.MustCompile(str))
 }
