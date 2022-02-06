@@ -260,6 +260,11 @@ func TestRepeat(t *testing.T) {
 					if len(v) != len(tt) {
 						t.Errorf("len(v) = %d, want %d", len(v), len(tt))
 					}
+					for i := range v {
+						if v[i] != 'a' {
+							t.Errorf("v[%d] = %q, want %q", i, v[i], 'a')
+						}
+					}
 				})
 			}
 		})
@@ -280,6 +285,50 @@ func TestRepeat(t *testing.T) {
 				})
 			}
 		})
+	})
+}
+
+func TestSepBy(t *testing.T) {
+	p := wi.SepBy(
+		wi.RegexpStr("[0-9]+"),
+		wi.Rune(','),
+	)
+
+	t.Run("ok", func(t *testing.T) {
+		type testCase struct {
+			str string
+			arr []string
+		}
+		testCases := []testCase{
+			{
+				str: "",
+				arr: []string{},
+			},
+			{
+				str: "0",
+				arr: []string{"0"},
+			},
+			{
+				str: "0,123,456",
+				arr: []string{"0", "123", "456"},
+			},
+		}
+		for _, tt := range testCases {
+			t.Run(tt.str, func(t *testing.T) {
+				v, err := wi.Parse(tt.str, p)
+				if err != nil {
+					t.Fatal(err)
+				}
+				if len(v) != len(tt.arr) {
+					t.Fatalf("len(v = %s) = %d, want %d", v, len(v), len(tt.arr))
+				}
+				for i := range v {
+					if v[i] != tt.arr[i] {
+						t.Errorf("v[%d] = %q, want %q", i, v[i], tt.arr[i])
+					}
+				}
+			})
+		}
 	})
 }
 

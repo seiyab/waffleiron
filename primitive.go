@@ -72,9 +72,21 @@ func (p regexpParser) Parse(r *Reader) (string, error) {
 		panic("regex matched on loc[0] != 0. it might be bug. please submit an issue.")
 	}
 	r.SkipBytes(loc[1])
-	return str, nil
+	return str[0:loc[1]], nil
 }
 
 func RegexpStr(str string) Parser[string] {
 	return Regexp(regexp.MustCompile(str))
+}
+
+func Pure[T any](value T) Parser[T] {
+	return pureParser[T]{value}
+}
+
+type pureParser[T any] struct {
+	value T
+}
+
+func (p pureParser[T]) Parse(r *Reader) (T, error) {
+	return p.value, nil
 }

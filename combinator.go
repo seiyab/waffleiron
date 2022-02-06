@@ -109,6 +109,25 @@ func (p repeatParser[T]) Parse(r *Reader) ([]T, error) {
 	}
 }
 
+func SepBy[T, U any](p Parser[T], sep Parser[U]) Parser[[]T] {
+	return Choice(
+		Map(
+			And(
+				Repeat(And(p, sep)),
+				p,
+			),
+			func(v Tuple2[[]Tuple2[T, U], T]) []T {
+				ts := make([]T, 0)
+				for _, t := range v.Get0() {
+					ts = append(ts, t.Get0())
+				}
+				return append(ts, v.Get1())
+			},
+		),
+		Pure[[]T](nil),
+	)
+}
+
 func Maybe[T any](p Parser[T]) Parser[*T] {
 	return maybeParser[T]{p}
 }

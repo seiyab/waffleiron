@@ -82,6 +82,7 @@ func TestRegexpStr(t *testing.T) {
 				"123a",
 				"x456",
 				"waffle iron",
+				"123,456",
 			}
 			for _, tt := range testCases {
 				t.Run(tt, func(t *testing.T) {
