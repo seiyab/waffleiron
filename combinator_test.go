@@ -332,6 +332,30 @@ func TestSepBy(t *testing.T) {
 	})
 }
 
+func TestBetween(t *testing.T) {
+	p := wi.Between(
+		wi.Rune('('),
+		wi.RegexpStr("[0-9]+"),
+		wi.Rune(')'),
+	)
+
+	t.Run("ok", func(t *testing.T) {
+		testCases := []string{
+			"(0)",
+			"(123)",
+			"(123456789)",
+		}
+		for _, tt := range testCases {
+			t.Run(tt, func(t *testing.T) {
+				_, err := wi.Parse(tt, p)
+				if err != nil {
+					t.Fatal(err)
+				}
+			})
+		}
+	})
+}
+
 func TestTrace(t *testing.T) {
 	p := wi.And(
 		wi.Trace("A", wi.String("waffle")),

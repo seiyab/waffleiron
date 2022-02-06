@@ -149,6 +149,19 @@ func (p maybeParser[T]) Parse(r *Reader) (*T, error) {
 	return &v, nil
 }
 
+func Between[T, U, V any](open Parser[T], p Parser[U], close Parser[V]) Parser[U] {
+	return Map(
+		And3(
+			open,
+			p,
+			close,
+		),
+		func(t Tuple3[T, U, V]) U {
+			return t.Get1()
+		},
+	)
+}
+
 func Trace[T any](name string, p Parser[T]) Parser[T] {
 	return traceParser[T]{name, p}
 }
