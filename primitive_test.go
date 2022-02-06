@@ -2,6 +2,7 @@ package waffleiron_test
 
 import (
 	"regexp"
+	"strconv"
 	"testing"
 
 	wi "github.com/seiyab/waffleiron"
@@ -93,5 +94,57 @@ func TestRegexpStr(t *testing.T) {
 				})
 			}
 		})
+	})
+}
+
+func TestInt(t *testing.T) {
+	t.Run("ok", func(t *testing.T) {
+		testCases := []string {
+			"0",
+			"1",
+			"+0",
+			"-0",
+			"+1234",
+			"-1234",
+			"00",
+			"012",
+			"-012",
+			"+012",
+		}
+
+		for _, tt := range testCases {
+			t.Run(tt, func(t *testing.T) {
+				i, err := strconv.Atoi(tt)
+				if err != nil {
+					t.Fatal("invalid test case")
+				}
+				v, err := wi.Parse(tt, wi.Int)
+				if err != nil {
+					t.Fatal(err)
+				}
+				if v != i {
+					t.Errorf("v = %d, want %d", v, i)
+				}
+			})
+		}
+	})
+
+	t.Run("error", func(t *testing.T) {
+		testCases := []string {
+			"",
+			" 0",
+			"--1",
+			"++1",
+			"123,456",
+			"123_456",
+		}
+		for _, tt := range testCases {
+			t.Run(tt, func(t *testing.T) {
+				_, err := wi.Parse(tt, wi.Int)
+				if err == nil {
+					t.Error("expected error")
+				}
+			})
+		}
 	})
 }

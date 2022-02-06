@@ -2,6 +2,7 @@ package waffleiron
 
 import (
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -78,6 +79,18 @@ func (p regexpParser) Parse(r *Reader) (string, error) {
 func RegexpStr(str string) Parser[string] {
 	return Regexp(regexp.MustCompile(str))
 }
+
+var intRegexp *regexp.Regexp = regexp.MustCompile("^[+\\-]?[0-9]+")
+var Int Parser[int] = Map(
+	Regexp(intRegexp),
+	func(s string) int {
+		i, err := strconv.Atoi(s)
+		if err != nil {
+			panic("failed to convert into int. this seems to be a bug. please submit an issue.")
+		}
+		return i
+	},
+)
 
 func Pure[T any](value T) Parser[T] {
 	return pureParser[T]{value}
