@@ -53,20 +53,20 @@ func (p and3Parser[T, U, V]) Parse(r *Reader) (Tuple3[T, U, V], error) {
 	return NewTuple3(v0, v1, v2), nil
 }
 
-func Or[T any](p0 Parser[T], ps ...Parser[T]) Parser[T] {
+func Choice[T any](p0 Parser[T], ps ...Parser[T]) Parser[T] {
 	parsers := make([]Parser[T], len(ps)+1)
 	parsers[0] = p0
 	for i, p := range ps {
 		parsers[i+1] = p
 	}
-	return orParser[T]{ps: parsers}
+	return choiceParser[T]{ps: parsers}
 }
 
-type orParser[T any] struct {
+type choiceParser[T any] struct {
 	ps []Parser[T]
 }
 
-func (p orParser[T]) Parse(r *Reader) (T, error) {
+func (p choiceParser[T]) Parse(r *Reader) (T, error) {
 	var totalErr error
 	for _, p := range p.ps {
 		var t T

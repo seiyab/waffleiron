@@ -166,8 +166,8 @@ func TestAnd3(t *testing.T) {
 	})
 }
 
-func TestOr(t *testing.T) {
-	p := wi.Or(
+func TestChoice(t *testing.T) {
+	p := wi.Choice(
 		wi.String("waffleiron"),
 		wi.String("waffle"),
 		wi.String("iron"),
