@@ -99,7 +99,7 @@ func TestRegexpStr(t *testing.T) {
 
 func TestInt(t *testing.T) {
 	t.Run("ok", func(t *testing.T) {
-		testCases := []string {
+		testCases := []string{
 			"0",
 			"1",
 			"+0",
@@ -118,7 +118,7 @@ func TestInt(t *testing.T) {
 				if err != nil {
 					t.Fatal("invalid test case")
 				}
-				v, err := wi.Parse(tt, wi.Int)
+				v, err := wi.Parse(tt, wi.Int())
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -130,7 +130,7 @@ func TestInt(t *testing.T) {
 	})
 
 	t.Run("error", func(t *testing.T) {
-		testCases := []string {
+		testCases := []string{
 			"",
 			" 0",
 			"--1",
@@ -140,7 +140,7 @@ func TestInt(t *testing.T) {
 		}
 		for _, tt := range testCases {
 			t.Run(tt, func(t *testing.T) {
-				_, err := wi.Parse(tt, wi.Int)
+				_, err := wi.Parse(tt, wi.Int())
 				if err == nil {
 					t.Error("expected error")
 				}

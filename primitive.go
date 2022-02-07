@@ -80,17 +80,24 @@ func RegexpStr(str string) Parser[string] {
 	return Regexp(regexp.MustCompile(str))
 }
 
-var intRegexp *regexp.Regexp = regexp.MustCompile("^[+\\-]?[0-9]+")
-var Int Parser[int] = Map(
-	Regexp(intRegexp),
-	func(s string) int {
-		i, err := strconv.Atoi(s)
-		if err != nil {
-			panic("failed to convert into int. this seems to be a bug. please submit an issue.")
-		}
-		return i
-	},
-)
+var intParser Parser[int]
+
+func Int() Parser[int] {
+	if intParser == nil {
+		intRegexp := regexp.MustCompile("^[+\\-]?[0-9]+")
+		intParser = Map(
+			Regexp(intRegexp),
+			func(s string) int {
+				i, err := strconv.Atoi(s)
+				if err != nil {
+					panic("failed to convert into int. this seems to be a bug. please submit an issue.")
+				}
+				return i
+			},
+		)
+	}
+	return intParser
+}
 
 func Pure[T any](value T) Parser[T] {
 	return pureParser[T]{value}

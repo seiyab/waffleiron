@@ -9,10 +9,10 @@ import (
 func Example() {
 	p := wi.Between(
 		wi.Rune('['),
-		wi.SepBy(wi.Int, wi.Rune(',')),
+		wi.SepBy(wi.Int(), wi.Rune(',')),
 		wi.Rune(']'),
 	)
-	
+
 	result, err := wi.Parse("[0,1,2,3]", p)
 
 	fmt.Println(err)
