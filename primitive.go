@@ -14,6 +14,7 @@ func (p FuncParser[T]) Parse(r *Reader) (T, error) {
 	return p(r)
 }
 
+// Rune returns Parser that consumes a rune and return it if the current rune is same as rn
 func Rune(rn rune) Parser[rune] {
 	return runeParser{rn}
 }
@@ -22,6 +23,7 @@ type runeParser struct {
 	rn rune
 }
 
+// Parse implements Parser interface
 func (p runeParser) Parse(r *Reader) (rune, error) {
 	ch, _, err := r.ReadRune()
 	if err != nil {
@@ -33,6 +35,7 @@ func (p runeParser) Parse(r *Reader) (rune, error) {
 	return ch, nil
 }
 
+// String returns Parser that consumes a string and return it if remaining string starts with str
 func String(str string) Parser[string] {
 	return stringParser{str}
 }
@@ -41,6 +44,7 @@ type stringParser struct {
 	str string
 }
 
+// Parse implements Parser interface
 func (p stringParser) Parse(r *Reader) (string, error) {
 	overrun := int64(len(p.str)) > int64(len(r.str))-r.idx
 	if overrun || !strings.HasPrefix(r.RemainingString(), p.str) {
@@ -50,6 +54,7 @@ func (p stringParser) Parse(r *Reader) (string, error) {
 	return p.str, nil
 }
 
+// Regexp returns Parser that consume a string and return it if remaining string matches re
 func Regexp(re *regexp.Regexp) Parser[string] {
 	if !strings.HasPrefix(re.String(), "^") {
 		return regexpParser{
@@ -63,6 +68,7 @@ type regexpParser struct {
 	re *regexp.Regexp
 }
 
+// Parse implements Parser interface
 func (p regexpParser) Parse(r *Reader) (string, error) {
 	str := r.RemainingString()
 	loc := p.re.FindStringIndex(str)
@@ -76,12 +82,14 @@ func (p regexpParser) Parse(r *Reader) (string, error) {
 	return str[0:loc[1]], nil
 }
 
+// Regexp compiles str as a regexp and returns a Regexp parser
 func RegexpStr(str string) Parser[string] {
 	return Regexp(regexp.MustCompile(str))
 }
 
 var intParser Parser[int]
 
+// Int returns a Parser that parses int
 func Int() Parser[int] {
 	if intParser == nil {
 		intRegexp := regexp.MustCompile("^[+\\-]?[0-9]+")
@@ -99,6 +107,7 @@ func Int() Parser[int] {
 	return intParser
 }
 
+// Pure returns a Parser that returns value without consuming a Reader
 func Pure[T any](value T) Parser[T] {
 	return pureParser[T]{value}
 }
@@ -107,6 +116,7 @@ type pureParser[T any] struct {
 	value T
 }
 
+// Parse implements Parser interface
 func (p pureParser[T]) Parse(r *Reader) (T, error) {
 	return p.value, nil
 }

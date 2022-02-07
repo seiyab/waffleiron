@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 )
 
+// And returns a parser that runs p0 and then runs p1
 func And[T, U any](p0 Parser[T], p1 Parser[U]) Parser[Tuple2[T, U]] {
 	return andParser[T, U]{p0, p1}
 }
@@ -15,6 +16,7 @@ type andParser[T, U any] struct {
 	p1 Parser[U]
 }
 
+// Parse implements Parser interface
 func (p andParser[T, U]) Parse(r *Reader) (Tuple2[T, U], error) {
 	a, err := p.p0.Parse(r)
 	if err != nil {
@@ -27,6 +29,7 @@ func (p andParser[T, U]) Parse(r *Reader) (Tuple2[T, U], error) {
 	return NewTuple2(a, b), nil
 }
 
+// And returns a parser that runs p0 and then runs p1 and then p2
 func And3[T, U, V any](p0 Parser[T], p1 Parser[U], p2 Parser[V]) Parser[Tuple3[T, U, V]] {
 	return and3Parser[T, U, V]{p0, p1, p2}
 }
@@ -37,6 +40,7 @@ type and3Parser[T, U, V any] struct {
 	p2 Parser[V]
 }
 
+// Parse implements Parser interface
 func (p and3Parser[T, U, V]) Parse(r *Reader) (Tuple3[T, U, V], error) {
 	v0, err := p.p0.Parse(r)
 	if err != nil {
@@ -53,6 +57,7 @@ func (p and3Parser[T, U, V]) Parse(r *Reader) (Tuple3[T, U, V], error) {
 	return NewTuple3(v0, v1, v2), nil
 }
 
+// Choice returns a parser that tries each parsers and returns first successful result
 func Choice[T any](p0 Parser[T], ps ...Parser[T]) Parser[T] {
 	parsers := make([]Parser[T], len(ps)+1)
 	parsers[0] = p0
@@ -66,6 +71,7 @@ type choiceParser[T any] struct {
 	ps []Parser[T]
 }
 
+// Parse implements Parser interface
 func (p choiceParser[T]) Parse(r *Reader) (T, error) {
 	var totalErr error
 	for _, p := range p.ps {
@@ -84,6 +90,8 @@ func (p choiceParser[T]) Parse(r *Reader) (T, error) {
 	return *new(T), totalErr
 }
 
+// Repeat returns a parser that repeatedly tries p until it fails
+// If first trial fails, it results empty slice without any errors
 func Repeat[T any](p Parser[T]) Parser[[]T] {
 	return repeatParser[T]{p}
 }
@@ -92,6 +100,7 @@ type repeatParser[T any] struct {
 	p Parser[T]
 }
 
+// Parse implements Parser interface
 func (p repeatParser[T]) Parse(r *Reader) ([]T, error) {
 	ts := make([]T, 0)
 	for {
@@ -109,6 +118,7 @@ func (p repeatParser[T]) Parse(r *Reader) ([]T, error) {
 	}
 }
 
+// SepBy returns a parser that repeatedly parse with p separated by sep
 func SepBy[T, U any](p Parser[T], sep Parser[U]) Parser[[]T] {
 	return Choice(
 		Map(
@@ -128,6 +138,8 @@ func SepBy[T, U any](p Parser[T], sep Parser[U]) Parser[[]T] {
 	)
 }
 
+// Maybe returns a parser that tries to run p
+// If p fails, it results nil without any errors
 func Maybe[T any](p Parser[T]) Parser[*T] {
 	return maybeParser[T]{p}
 }
@@ -136,6 +148,7 @@ type maybeParser[T any] struct {
 	p Parser[T]
 }
 
+// Parse implements Parser interface
 func (p maybeParser[T]) Parse(r *Reader) (*T, error) {
 	var v T
 	err := r.Try(func() error {
@@ -149,6 +162,8 @@ func (p maybeParser[T]) Parse(r *Reader) (*T, error) {
 	return &v, nil
 }
 
+// Between returns a parser that runs open and then runs p and then runs close
+// The results of open and close are discarded
 func Between[T, U, V any](open Parser[T], p Parser[U], close Parser[V]) Parser[U] {
 	return Map(
 		And3(
@@ -162,6 +177,7 @@ func Between[T, U, V any](open Parser[T], p Parser[U], close Parser[V]) Parser[U
 	)
 }
 
+// Trace adds name for debug
 func Trace[T any](name string, p Parser[T]) Parser[T] {
 	return traceParser[T]{name, p}
 }
@@ -171,6 +187,7 @@ type traceParser[T any] struct {
 	p    Parser[T]
 }
 
+// Parse implements Parser interface
 func (p traceParser[T]) Parse(r *Reader) (T, error) {
 	var t T
 	var err error
