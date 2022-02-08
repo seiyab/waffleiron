@@ -1,23 +1,22 @@
-# WaffleIron
+# WaffleIron 田
 The parser combinator library in Golang powered by generics
+
+:construction: WaffleIron will make breaking changes while major version is 0. :boom:
 
 ## Overview
 - parser combinators
 - primitive parsers
 - powered by generics introduced in Go 1.18
 
-## Example
-See [example test](combinator_example_test.go).
-
 ## Getting started
 ```
 go get github.com/seiyab/waffleiron
 ```
 
-WaffleIron requires Go version >= 1.18
+:rotating_light: WaffleIron requires Go version >= 1.18
 
 ## Doc
-WIP
+- https://pkg.go.dev/github.com/seiyab/waffleiron
 
 ## License
 See [LICENSE](./LICENSE).
