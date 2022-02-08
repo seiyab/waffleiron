@@ -31,7 +31,7 @@ func (r *Reader) ReadRune() (rune, int, error) {
 	if err != nil {
 		return c, s, err
 	}
-	r.SkipBytes(s)
+	r.ConsumeBytes(s)
 	return c, s, nil
 }
 
@@ -40,16 +40,17 @@ func (r *Reader) RemainingString() string {
 	return r.str[r.idx:]
 }
 
-// SkipBytes skips s bytes
-func (r *Reader) SkipBytes(s int) error {
-	sr := strings.NewReader(r.str[r.idx : r.idx+int64(s)])
+// ConsumeBytes consumes s bytes
+func (r *Reader) ConsumeBytes(s int) (string, error) {
+	consumed := r.str[r.idx : r.idx+int64(s)]
+	sr := strings.NewReader(consumed)
 	for {
 		c, s, err := sr.ReadRune()
 		if err == io.EOF {
-			return nil
+			return consumed, nil
 		}
 		if err != nil {
-			return err
+			return "", err
 		}
 		r.pos.column += 1
 		r.idx += int64(s)

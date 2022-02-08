@@ -1,6 +1,7 @@
 package waffleiron
 
 import (
+	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -50,7 +51,13 @@ func (p stringParser) Parse(r *Reader) (string, error) {
 	if overrun || !strings.HasPrefix(r.RemainingString(), p.str) {
 		return "", errors.Errorf("expected %q, but not found at %s", p.str, r.pos)
 	}
-	r.SkipBytes(len(p.str))
+	s, err := r.ConsumeBytes(len(p.str))
+	if err != nil || s != p.str {
+		panic(fmt.Sprintf(
+			"waffleiron.String(%q) consumed wrong bytes. it might be bug. please submit an issue.",
+			p.str,
+		))
+	}
 	return p.str, nil
 }
 
@@ -78,8 +85,14 @@ func (p regexpParser) Parse(r *Reader) (string, error) {
 	if loc[0] != 0 {
 		panic("regex matched on loc[0] != 0. it might be bug. please submit an issue.")
 	}
-	r.SkipBytes(loc[1])
-	return str[0:loc[1]], nil
+	s, err := r.ConsumeBytes(loc[1])
+	if err != nil {
+		panic(fmt.Sprintf(
+			"waffleiron.Regexp(%s) consumed wrong bytes. it might be bug. please submit an issue.",
+			p.re,
+		))
+	}
+	return s, nil
 }
 
 // Regexp compiles str as a regexp and returns a Regexp parser
