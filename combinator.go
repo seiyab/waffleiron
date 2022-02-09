@@ -177,6 +177,21 @@ func Between[T, U, V any](open Parser[T], p Parser[U], close Parser[V]) Parser[U
 	)
 }
 
+// Ref takes a pointer of a parser and returns a parser that works same as original one
+// It can be useful for recursive parser
+func Ref[T any](p *Parser[T]) Parser[T] {
+	return refParser[T]{p}
+}
+
+type refParser[T any] struct {
+	p *Parser[T]
+}
+
+func (p refParser[T]) Parse(r *Reader) (T, error) {
+	a := *p.p
+	return a.Parse(r)
+}
+
 // Trace adds name for debug
 func Trace[T any](name string, p Parser[T]) Parser[T] {
 	return traceParser[T]{name, p}
