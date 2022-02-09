@@ -18,4 +18,4 @@ jobs:
         with:
           go-version: '1.18.0-beta1'
           stable: false
-      - run: [[ $(go fmt | wc -c) -eq 0 ]]
+      - run: '[[ $(go fmt | wc -c) -eq 0 ]]'
