@@ -24,48 +24,55 @@ func Example() {
 }
 
 func Example_recursive() {
-	type obj struct {
-		name    string
-		entries []obj
-	}
+	type obj map[string]obj
 
 	str := wi.Between(
 		wi.Rune('"'),
 		wi.RegexpStr(`[^"]*`),
 		wi.Rune('"'),
 	)
-	ws := wi.RegexpStr(`[ \t\n]+`)
+	ws := wi.Untype(wi.Maybe(wi.RegexpStr(`[ \t\n]+`)))
 
 	var p wi.Parser[obj]
 
-	p = wi.Map(
-		wi.And3(
-			str,
-			wi.Between(wi.Maybe(ws), wi.Rune(':'), wi.Maybe(ws)),
-			wi.Between(
-				wi.And3(wi.Maybe(ws), wi.Rune('{'), wi.Maybe(ws)),
-				wi.SepBy(
-					wi.Ref(&p),
-					wi.And(wi.Rune(','), wi.Maybe(ws)),
-				),
-				wi.And3(wi.Maybe(ws), wi.Rune('}'), wi.Maybe(ws)),
-			),
-		),
-		func(t wi.Tuple3[string, rune, []obj]) obj {
-			return obj{
-				name:    t.Get0(),
-				entries: t.Get2(),
-			}
-		},
-	)
+	p = wi.Build1(func(entries []wi.Tuple2[string, obj]) obj {
+		o := make(obj, 0)
+		for _, e := range entries {
+			o[e.Get0()] = e.Get1()
+		}
+		return o
+	}).
+		Skip(ws).
+		Skip(wi.Untype(wi.Rune('{'))).
+		Skip(ws).
+		Accept(wi.SepBy(
+			wi.Build2(wi.NewTuple2[string, obj]).
+				Accept(str).
+				Skip(ws).
+				Skip(wi.Untype(wi.Rune(':'))).
+				Skip(ws).
+				Accept(wi.Ref(&p)).
+				End(),
+			wi.Untype(wi.Between(
+				ws,
+				wi.Rune(','),
+				ws,
+			)),
+		)).
+		Skip(ws).
+		Skip(wi.Untype(wi.Rune('}'))).
+		Skip(ws).
+		End()
 
-	result, err := wi.Parse(`"a": {
-		"b": {
-			"c": {}
-		},
-		"d": {
-			"e": {},
-			"f": {}
+	result, err := wi.Parse(`{
+		"a": {
+			"b": {
+				"c": {}
+			},
+			"d": {
+				"e": {},
+				"f": {}
+			}
 		}
 	}`, p)
 
@@ -73,5 +80,5 @@ func Example_recursive() {
 	fmt.Printf("%v", result)
 	// Output:
 	// <nil>
-	// {a [{b [{c []}]} {d [{e []} {f []}]}]}
+	// map[a:map[b:map[c:map[]] d:map[e:map[] f:map[]]]]
 }
