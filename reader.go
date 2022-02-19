@@ -6,42 +6,38 @@ import (
 	"strings"
 )
 
-// Reader is used to read string by parser
-// You don't need to know it well
-// if you don't write your own primitive parser or parser combinator
-type Reader struct {
+type reader struct {
 	str string
 	idx int64 // current reading index
 	pos Position
 	trc *trace
 }
 
-// NewReader creates a reader for string s
-func NewReader(s string) *Reader {
-	return &Reader{
+// newReader creates a reader for string s
+func newReader(s string) *reader {
+	return &reader{
 		str: s,
 	}
 }
 
-// ReadRune implements the io.RuneReader interface.
-func (r *Reader) ReadRune() (rune, int, error) {
+func (r *reader) readRune() (rune, int, error) {
 	sr := strings.NewReader(r.str)
 	sr.Seek(r.idx, io.SeekStart)
 	c, s, err := sr.ReadRune()
 	if err != nil {
 		return c, s, err
 	}
-	r.ConsumeBytes(s)
+	r.consumeBytes(s)
 	return c, s, nil
 }
 
-// RemainingString returns remaining string that is not consumed yet
-func (r *Reader) RemainingString() string {
+// remainingString returns remaining string that is not consumed yet
+func (r *reader) remainingString() string {
 	return r.str[r.idx:]
 }
 
-// ConsumeBytes consumes s bytes
-func (r *Reader) ConsumeBytes(s int) (string, error) {
+// consumeBytes consumes s bytes
+func (r *reader) consumeBytes(s int) (string, error) {
 	consumed := r.str[r.idx : r.idx+int64(s)]
 	sr := strings.NewReader(consumed)
 	for {
@@ -61,9 +57,9 @@ func (r *Reader) ConsumeBytes(s int) (string, error) {
 	}
 }
 
-// Try runs f
+// try runs f
 // If f returns an error, r doesn't consume any bytes
-func (r *Reader) Try(f func() error) error {
+func (r *reader) try(f func() error) error {
 	var idx int64 = r.idx
 	var pos Position = r.pos
 	err := f()
@@ -75,8 +71,8 @@ func (r *Reader) Try(f func() error) error {
 	return nil
 }
 
-// WithTrace adds trace information
-func (r *Reader) WithTrace(name string, f func()) {
+// withTrace adds trace information
+func (r *reader) withTrace(name string, f func()) {
 	r.trc = &trace{
 		name:   name,
 		parent: r.trc,

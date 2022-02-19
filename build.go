@@ -17,9 +17,9 @@ func Begin3[T3, T2, T1, U any](f func(v3 T3, v2 T2, v1 T1) U) Builder3[any, any,
 			pSkip: zeroParser,
 			p5:    zeroParser,
 			p4:    zeroParser,
-			p3:    nil,
-			p2:    nil,
-			p1:    nil,
+			p3:    Parser[T3]{},
+			p2:    Parser[T2]{},
+			p1:    Parser[T1]{},
 		},
 	}
 }
@@ -46,8 +46,8 @@ func Begin2[T2, T1, U any](f func(v2 T2, v1 T1) U) Builder2[any, any, any, T2, T
 			p5:    zeroParser,
 			p4:    zeroParser,
 			p3:    zeroParser,
-			p2:    nil,
-			p1:    nil,
+			p2:    Parser[T2]{},
+			p1:    Parser[T1]{},
 		},
 	}
 }
@@ -75,7 +75,7 @@ func Begin1[T, U any](f func(t T) U) Builder1[any, any, any, any, T, U] {
 			p4:    zeroParser,
 			p3:    zeroParser,
 			p2:    zeroParser,
-			p1:    nil,
+			p1:    Parser[T]{},
 		},
 	}
 }
@@ -102,7 +102,7 @@ func (b Builder0[T5, T4, T3, T2, T1, U]) Skip(p Parser[any]) Builder0[T5, T4, T3
 }
 
 func (b Builder0[T5, T4, T3, T2, T1, U]) End() Parser[U] {
-	return b.b
+	return Parser[U]{p: b.b}
 }
 
 type builtParser[T5, T4, T3, T2, T1, U any] struct {
@@ -115,29 +115,29 @@ type builtParser[T5, T4, T3, T2, T1, U any] struct {
 	p1    Parser[T1]
 }
 
-func (p builtParser[T5, T4, T3, T2, T1, U]) Parse(r *Reader) (U, error) {
-	_, err := p.pSkip.Parse(r)
+func (p builtParser[T5, T4, T3, T2, T1, U]) parse(r *reader) (U, error) {
+	_, err := p.pSkip.parse(r)
 	if err != nil {
 		return *new(U), err
 	}
-	v5, err := p.p5.Parse(r)
+	v5, err := p.p5.parse(r)
 	if err != nil {
 		return *new(U), err
 	}
-	v4, err := p.p4.Parse(r)
+	v4, err := p.p4.parse(r)
 	if err != nil {
 		return *new(U), err
 	}
 
-	v3, err := p.p3.Parse(r)
+	v3, err := p.p3.parse(r)
 	if err != nil {
 		return *new(U), err
 	}
-	v2, err := p.p2.Parse(r)
+	v2, err := p.p2.parse(r)
 	if err != nil {
 		return *new(U), err
 	}
-	v1, err := p.p1.Parse(r)
+	v1, err := p.p1.parse(r)
 	if err != nil {
 		return *new(U), err
 	}

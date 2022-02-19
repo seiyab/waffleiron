@@ -9,24 +9,17 @@ import (
 	"github.com/pkg/errors"
 )
 
-type FuncParser[T any] func(r *Reader) (T, error)
-
-func (p FuncParser[T]) Parse(r *Reader) (T, error) {
-	return p(r)
-}
-
 // Rune returns Parser that consumes a rune and return it if the current rune is same as rn
 func Rune(rn rune) Parser[rune] {
-	return runeParser{rn}
+	return Parser[rune]{p: runeParser{rn}}
 }
 
 type runeParser struct {
 	rn rune
 }
 
-// Parse implements Parser interface
-func (p runeParser) Parse(r *Reader) (rune, error) {
-	ch, _, err := r.ReadRune()
+func (p runeParser) parse(r *reader) (rune, error) {
+	ch, _, err := r.readRune()
 	if err != nil {
 		return 0, errors.Wrapf(err, "at %s", r.pos)
 	}
@@ -36,22 +29,22 @@ func (p runeParser) Parse(r *Reader) (rune, error) {
 	return ch, nil
 }
 
-// String returns Parser that consumes a string and return it if remaining string starts with str
-func String(str string) Parser[string] {
-	return stringParser{str}
+// Word returns Parser that consumes a string and return it if remaining string starts with str
+func Word(str string) Parser[string] {
+	return Parser[string]{p: wordParser{str}}
 }
 
-type stringParser struct {
+type wordParser struct {
 	str string
 }
 
-// Parse implements Parser interface
-func (p stringParser) Parse(r *Reader) (string, error) {
+// parse implements parser interface
+func (p wordParser) parse(r *reader) (string, error) {
 	overrun := int64(len(p.str)) > int64(len(r.str))-r.idx
-	if overrun || !strings.HasPrefix(r.RemainingString(), p.str) {
+	if overrun || !strings.HasPrefix(r.remainingString(), p.str) {
 		return "", errors.Errorf("expected %q, but not found at %s", p.str, r.pos)
 	}
-	s, err := r.ConsumeBytes(len(p.str))
+	s, err := r.consumeBytes(len(p.str))
 	if err != nil || s != p.str {
 		panic(fmt.Sprintf(
 			"waffleiron.String(%q) consumed wrong bytes. it might be bug. please submit an issue.",
@@ -64,20 +57,19 @@ func (p stringParser) Parse(r *Reader) (string, error) {
 // Regexp returns Parser that consume a string and return it if remaining string matches re
 func Regexp(re *regexp.Regexp) Parser[string] {
 	if !strings.HasPrefix(re.String(), "^") {
-		return regexpParser{
+		return Parser[string]{p: regexpParser{
 			re: regexp.MustCompile("^" + re.String()),
-		}
+		}}
 	}
-	return regexpParser{re}
+	return Parser[string]{p: regexpParser{re}}
 }
 
 type regexpParser struct {
 	re *regexp.Regexp
 }
 
-// Parse implements Parser interface
-func (p regexpParser) Parse(r *Reader) (string, error) {
-	str := r.RemainingString()
+func (p regexpParser) parse(r *reader) (string, error) {
+	str := r.remainingString()
 	loc := p.re.FindStringIndex(str)
 	if len(loc) == 0 {
 		return "", errors.Errorf("expected to match %q at %s", p.re, r.pos)
@@ -85,7 +77,7 @@ func (p regexpParser) Parse(r *Reader) (string, error) {
 	if loc[0] != 0 {
 		panic("regex matched on loc[0] != 0. it might be bug. please submit an issue.")
 	}
-	s, err := r.ConsumeBytes(loc[1])
+	s, err := r.consumeBytes(loc[1])
 	if err != nil {
 		panic(fmt.Sprintf(
 			"waffleiron.Regexp(%s) consumed wrong bytes. it might be bug. please submit an issue.",
@@ -104,9 +96,9 @@ var intParser Parser[int]
 
 // Int returns a Parser that parses int
 func Int() Parser[int] {
-	if intParser == nil {
+	if intParser.p == nil {
 		intRegexp := regexp.MustCompile("^[+\\-]?[0-9]+")
-		intParser = Map(
+		intParser.p = Map(
 			Regexp(intRegexp),
 			func(s string) int {
 				i, err := strconv.Atoi(s)
@@ -122,14 +114,13 @@ func Int() Parser[int] {
 
 // Pure returns a Parser that returns value without consuming a Reader
 func Pure[T any](value T) Parser[T] {
-	return pureParser[T]{value}
+	return Parser[T]{p: pureParser[T]{value}}
 }
 
 type pureParser[T any] struct {
 	value T
 }
 
-// Parse implements Parser interface
-func (p pureParser[T]) Parse(r *Reader) (T, error) {
+func (p pureParser[T]) parse(r *reader) (T, error) {
 	return p.value, nil
 }
