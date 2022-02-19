@@ -18,7 +18,6 @@ func Parse[T any](str string, psr Parser[T]) (T, error) {
 	return value, nil
 }
 
-
 // Parser is a parser to pass Parse function
 type Parser[T any] struct {
 	p parser[T]
