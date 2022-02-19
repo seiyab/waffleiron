@@ -28,4 +28,5 @@ Bug reports / Feature suggestions are welcome.
 
 ## Related works
 - https://hackage.haskell.org/package/parsec
-- https://github.com/go-gorm/gorm
+- https://github.com/prataprc/goparsec
+- https://github.com/jneen/parsimmon
