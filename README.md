@@ -1,4 +1,6 @@
 # WaffleIron 田
+![CI](https://github.com/seiyab/waffleiron/actions/workflows/actions.yaml/badge.svg?branch=main)
+
 The parser combinator library in Golang powered by generics
 
 :construction: WaffleIron will make breaking changes while major version is 0. :boom:
