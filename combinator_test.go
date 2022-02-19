@@ -393,7 +393,7 @@ func TestTrace(t *testing.T) {
 		},
 	}
 
-	rgx := regexp.MustCompile("at \"[^\"]+\"")
+	rgx := regexp.MustCompile("\"[^\"]+\" >")
 
 	for _, tt := range testCases {
 		t.Run(tt.str, func(t *testing.T) {
@@ -410,7 +410,7 @@ func TestTrace(t *testing.T) {
 			}
 
 			for i, tr := range tt.traces {
-				expectedTrace := fmt.Sprintf("at %q", tr)
+				expectedTrace := fmt.Sprintf("%q >", tr)
 				if actualTraces[i] != expectedTrace {
 					t.Errorf("actualTraces[%d] = %q, want %q", i, actualTraces[i], expectedTrace)
 				}

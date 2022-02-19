@@ -9,9 +9,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-type FuncParser[T any] func(r *Reader) (T, error)
+type FuncParser[T any] func(r *reader) (T, error)
 
-func (p FuncParser[T]) Parse(r *Reader) (T, error) {
+func (p FuncParser[T]) Parse(r *reader) (T, error) {
 	return p(r)
 }
 
@@ -25,8 +25,8 @@ type runeParser struct {
 }
 
 // Parse implements Parser interface
-func (p runeParser) Parse(r *Reader) (rune, error) {
-	ch, _, err := r.ReadRune()
+func (p runeParser) Parse(r *reader) (rune, error) {
+	ch, _, err := r.readRune()
 	if err != nil {
 		return 0, errors.Wrapf(err, "at %s", r.pos)
 	}
@@ -46,12 +46,12 @@ type stringParser struct {
 }
 
 // Parse implements Parser interface
-func (p stringParser) Parse(r *Reader) (string, error) {
+func (p stringParser) Parse(r *reader) (string, error) {
 	overrun := int64(len(p.str)) > int64(len(r.str))-r.idx
-	if overrun || !strings.HasPrefix(r.RemainingString(), p.str) {
+	if overrun || !strings.HasPrefix(r.remainingString(), p.str) {
 		return "", errors.Errorf("expected %q, but not found at %s", p.str, r.pos)
 	}
-	s, err := r.ConsumeBytes(len(p.str))
+	s, err := r.consumeBytes(len(p.str))
 	if err != nil || s != p.str {
 		panic(fmt.Sprintf(
 			"waffleiron.String(%q) consumed wrong bytes. it might be bug. please submit an issue.",
@@ -76,8 +76,8 @@ type regexpParser struct {
 }
 
 // Parse implements Parser interface
-func (p regexpParser) Parse(r *Reader) (string, error) {
-	str := r.RemainingString()
+func (p regexpParser) Parse(r *reader) (string, error) {
+	str := r.remainingString()
 	loc := p.re.FindStringIndex(str)
 	if len(loc) == 0 {
 		return "", errors.Errorf("expected to match %q at %s", p.re, r.pos)
@@ -85,7 +85,7 @@ func (p regexpParser) Parse(r *Reader) (string, error) {
 	if loc[0] != 0 {
 		panic("regex matched on loc[0] != 0. it might be bug. please submit an issue.")
 	}
-	s, err := r.ConsumeBytes(loc[1])
+	s, err := r.consumeBytes(loc[1])
 	if err != nil {
 		panic(fmt.Sprintf(
 			"waffleiron.Regexp(%s) consumed wrong bytes. it might be bug. please submit an issue.",
@@ -130,6 +130,6 @@ type pureParser[T any] struct {
 }
 
 // Parse implements Parser interface
-func (p pureParser[T]) Parse(r *Reader) (T, error) {
+func (p pureParser[T]) Parse(r *reader) (T, error) {
 	return p.value, nil
 }

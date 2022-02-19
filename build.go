@@ -115,7 +115,7 @@ type builtParser[T5, T4, T3, T2, T1, U any] struct {
 	p1    Parser[T1]
 }
 
-func (p builtParser[T5, T4, T3, T2, T1, U]) Parse(r *Reader) (U, error) {
+func (p builtParser[T5, T4, T3, T2, T1, U]) Parse(r *reader) (U, error) {
 	_, err := p.pSkip.Parse(r)
 	if err != nil {
 		return *new(U), err

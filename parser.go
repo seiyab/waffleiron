@@ -7,7 +7,7 @@ import (
 // Parse runs parser
 // It returns an error if psr fails or psr doesn't consume all bytes
 func Parse[T any](str string, psr Parser[T]) (T, error) {
-	r := NewReader(str)
+	r := newReader(str)
 	value, err := psr.Parse(r)
 	if err != nil {
 		return value, err
@@ -22,7 +22,7 @@ func Parse[T any](str string, psr Parser[T]) (T, error) {
 type Parser[T any] interface {
 	// Parse consumes r and returns a result
 	// It returns error if it fails to parse
-	Parse(r *Reader) (T, error)
+	Parse(r *reader) (T, error)
 }
 
 // Map applies function for result of parse
@@ -36,7 +36,7 @@ type mapParser[T, U any] struct {
 }
 
 // Parse implements Parser interface
-func (p mapParser[T, U]) Parse(r *Reader) (U, error) {
+func (p mapParser[T, U]) Parse(r *reader) (U, error) {
 	t, err := p.p.Parse(r)
 	if err != nil {
 		return *new(U), err
