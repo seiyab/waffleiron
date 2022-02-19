@@ -8,7 +8,7 @@ import (
 
 // And returns a parser that runs p0 and then runs p1
 func And[T, U any](p0 Parser[T], p1 Parser[U]) Parser[Tuple2[T, U]] {
-	return andParser[T, U]{p0, p1}
+	return Parser[Tuple2[T, U]]{p: andParser[T, U]{p0, p1}}
 }
 
 type andParser[T, U any] struct {
@@ -16,13 +16,12 @@ type andParser[T, U any] struct {
 	p1 Parser[U]
 }
 
-// Parse implements Parser interface
-func (p andParser[T, U]) Parse(r *reader) (Tuple2[T, U], error) {
-	a, err := p.p0.Parse(r)
+func (p andParser[T, U]) parse(r *reader) (Tuple2[T, U], error) {
+	a, err := p.p0.parse(r)
 	if err != nil {
 		return Tuple2[T, U]{}, err
 	}
-	b, err := p.p1.Parse(r)
+	b, err := p.p1.parse(r)
 	if err != nil {
 		return Tuple2[T, U]{}, err
 	}
@@ -31,7 +30,7 @@ func (p andParser[T, U]) Parse(r *reader) (Tuple2[T, U], error) {
 
 // And returns a parser that runs p0 and then runs p1 and then p2
 func And3[T, U, V any](p0 Parser[T], p1 Parser[U], p2 Parser[V]) Parser[Tuple3[T, U, V]] {
-	return and3Parser[T, U, V]{p0, p1, p2}
+	return Parser[Tuple3[T, U, V]]{p: and3Parser[T, U, V]{p0, p1, p2}}
 }
 
 type and3Parser[T, U, V any] struct {
@@ -40,17 +39,16 @@ type and3Parser[T, U, V any] struct {
 	p2 Parser[V]
 }
 
-// Parse implements Parser interface
-func (p and3Parser[T, U, V]) Parse(r *reader) (Tuple3[T, U, V], error) {
-	v0, err := p.p0.Parse(r)
+func (p and3Parser[T, U, V]) parse(r *reader) (Tuple3[T, U, V], error) {
+	v0, err := p.p0.parse(r)
 	if err != nil {
 		return Tuple3[T, U, V]{}, err
 	}
-	v1, err := p.p1.Parse(r)
+	v1, err := p.p1.parse(r)
 	if err != nil {
 		return Tuple3[T, U, V]{}, err
 	}
-	v2, err := p.p2.Parse(r)
+	v2, err := p.p2.parse(r)
 	if err != nil {
 		return Tuple3[T, U, V]{}, err
 	}
@@ -64,21 +62,20 @@ func Choice[T any](p0 Parser[T], ps ...Parser[T]) Parser[T] {
 	for i, p := range ps {
 		parsers[i+1] = p
 	}
-	return choiceParser[T]{ps: parsers}
+	return Parser[T]{p: choiceParser[T]{ps: parsers}}
 }
 
 type choiceParser[T any] struct {
 	ps []Parser[T]
 }
 
-// Parse implements Parser interface
-func (p choiceParser[T]) Parse(r *reader) (T, error) {
+func (p choiceParser[T]) parse(r *reader) (T, error) {
 	var totalErr error
 	for _, p := range p.ps {
 		var t T
 		err := r.try(func() error {
 			var e error
-			t, e = p.Parse(r)
+			t, e = p.parse(r)
 			return e
 		})
 		if err == nil {
@@ -93,19 +90,18 @@ func (p choiceParser[T]) Parse(r *reader) (T, error) {
 // Repeat returns a parser that repeatedly tries p until it fails
 // If first trial fails, it results empty slice without any errors
 func Repeat[T any](p Parser[T]) Parser[[]T] {
-	return repeatParser[T]{p}
+	return Parser[[]T]{p: repeatParser[T]{p}}
 }
 
 type repeatParser[T any] struct {
 	p Parser[T]
 }
 
-// Parse implements Parser interface
-func (p repeatParser[T]) Parse(r *reader) ([]T, error) {
+func (p repeatParser[T]) parse(r *reader) ([]T, error) {
 	ts := make([]T, 0)
 	for {
 		err := r.try(func() error {
-			t, e := p.p.Parse(r)
+			t, e := p.p.parse(r)
 			if e != nil {
 				return e
 			}
@@ -141,19 +137,18 @@ func SepBy[T, U any](p Parser[T], sep Parser[U]) Parser[[]T] {
 // Maybe returns a parser that tries to run p
 // If p fails, it results nil without any errors
 func Maybe[T any](p Parser[T]) Parser[*T] {
-	return maybeParser[T]{p}
+	return Parser[*T]{p: maybeParser[T]{p}}
 }
 
 type maybeParser[T any] struct {
 	p Parser[T]
 }
 
-// Parse implements Parser interface
-func (p maybeParser[T]) Parse(r *reader) (*T, error) {
+func (p maybeParser[T]) parse(r *reader) (*T, error) {
 	var v T
 	err := r.try(func() error {
 		var e error
-		v, e = p.p.Parse(r)
+		v, e = p.p.parse(r)
 		return e
 	})
 	if err != nil {
@@ -177,36 +172,36 @@ func Between[T, U, V any](open Parser[T], p Parser[U], close Parser[V]) Parser[U
 	)
 }
 
-func Untype[T any](p Parser[T]) Parser[interface{}] {
-	return untypeParser[T]{p}
+func Untype[T any](p Parser[T]) Parser[any] {
+	return Parser[any]{p: untypeParser[T]{p}}
 }
 
 type untypeParser[T any] struct {
 	p Parser[T]
 }
 
-func (p untypeParser[T]) Parse(r *reader) (interface{}, error) {
-	return p.p.Parse(r)
+func (p untypeParser[T]) parse(r *reader) (interface{}, error) {
+	return p.p.parse(r)
 }
 
 // Ref takes a pointer of a parser and returns a parser that works same as original one
 // It can be useful for recursive parser
 func Ref[T any](p *Parser[T]) Parser[T] {
-	return refParser[T]{p}
+	return Parser[T]{p: refParser[T]{p}}
 }
 
 type refParser[T any] struct {
 	p *Parser[T]
 }
 
-func (p refParser[T]) Parse(r *reader) (T, error) {
+func (p refParser[T]) parse(r *reader) (T, error) {
 	a := *p.p
-	return a.Parse(r)
+	return a.parse(r)
 }
 
 // Trace adds name for debug
 func Trace[T any](name string, p Parser[T]) Parser[T] {
-	return traceParser[T]{name, p}
+	return Parser[T]{p: traceParser[T]{name, p}}
 }
 
 type traceParser[T any] struct {
@@ -214,12 +209,11 @@ type traceParser[T any] struct {
 	p    Parser[T]
 }
 
-// Parse implements Parser interface
-func (p traceParser[T]) Parse(r *reader) (T, error) {
+func (p traceParser[T]) parse(r *reader) (T, error) {
 	var t T
 	var err error
 	r.withTrace(p.name, func() {
-		t, err = p.p.Parse(r)
+		t, err = p.p.parse(r)
 	})
 	if err != nil {
 		return t, errors.Wrapf(err, "%q >", p.name)

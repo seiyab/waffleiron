@@ -62,8 +62,8 @@ func TestAnd(t *testing.T) {
 		}
 	})
 
-	t.Run("And(String, Rune)", func(t *testing.T) {
-		p := wi.And(wi.String("waffle"), wi.Rune('i'))
+	t.Run("And(Word, Rune)", func(t *testing.T) {
+		p := wi.And(wi.Word("waffle"), wi.Rune('i'))
 
 		type testCase struct {
 			str string
@@ -168,10 +168,10 @@ func TestAnd3(t *testing.T) {
 
 func TestChoice(t *testing.T) {
 	p := wi.Choice(
-		wi.String("waffleiron"),
-		wi.String("waffle"),
-		wi.String("iron"),
-		wi.String("parser"),
+		wi.Word("waffleiron"),
+		wi.Word("waffle"),
+		wi.Word("iron"),
+		wi.Word("parser"),
 	)
 
 	t.Run("ok", func(t *testing.T) {
@@ -218,7 +218,7 @@ func TestChoice(t *testing.T) {
 }
 
 func TestMaybe(t *testing.T) {
-	p := wi.Maybe(wi.String("waffle"))
+	p := wi.Maybe(wi.Word("waffle"))
 
 	t.Run("ok", func(t *testing.T) {
 		testCases := []string{
@@ -358,10 +358,10 @@ func TestBetween(t *testing.T) {
 
 func TestTrace(t *testing.T) {
 	p := wi.And(
-		wi.Trace("A", wi.String("waffle")),
+		wi.Trace("A", wi.Word("waffle")),
 		wi.Trace("B", wi.And(
 			wi.Trace("C", wi.Rune('i')),
-			wi.Trace("D", wi.String("ron")),
+			wi.Trace("D", wi.Word("ron")),
 		)),
 	)
 
