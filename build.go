@@ -10,7 +10,7 @@ type Builder3[T5, T4, T3, T2, T1, U any] struct {
 	b builtParser[T5, T4, T3, T2, T1, U]
 }
 
-func Build3[T3, T2, T1, U any](f func(v3 T3, v2 T2, v1 T1) U) Builder3[any, any, T3, T2, T1, U] {
+func Begin3[T3, T2, T1, U any](f func(v3 T3, v2 T2, v1 T1) U) Builder3[any, any, T3, T2, T1, U] {
 	return Builder3[any, any, T3, T2, T1, U]{
 		b: builtParser[any, any, T3, T2, T1, U]{
 			f:     func(_, _ any, v3 T3, v2 T2, v1 T1) U { return f(v3, v2, v1) },
@@ -29,7 +29,7 @@ func (b Builder3[T5, T4, T3, T2, T1, U]) Skip(p Parser[any]) Builder3[T5, T4, T3
 	return Builder3[T5, T4, T3, T2, T1, U]{b: b.b}
 }
 
-func (b Builder3[T5, T4, T3, T2, T1, U]) Accept(p Parser[T3]) Builder2[T5, T4, T3, T2, T1, U] {
+func (b Builder3[T5, T4, T3, T2, T1, U]) Then(p Parser[T3]) Builder2[T5, T4, T3, T2, T1, U] {
 	b.b.p3 = p
 	return Builder2[T5, T4, T3, T2, T1, U]{b: b.b}
 }
@@ -38,7 +38,7 @@ type Builder2[T5, T4, T3, T2, T1, U any] struct {
 	b builtParser[T5, T4, T3, T2, T1, U]
 }
 
-func Build2[T2, T1, U any](f func(v2 T2, v1 T1) U) Builder2[any, any, any, T2, T1, U] {
+func Begin2[T2, T1, U any](f func(v2 T2, v1 T1) U) Builder2[any, any, any, T2, T1, U] {
 	return Builder2[any, any, any, T2, T1, U]{
 		b: builtParser[any, any, any, T2, T1, U]{
 			f:     func(_, _, _ any, v2 T2, v1 T1) U { return f(v2, v1) },
@@ -57,7 +57,7 @@ func (b Builder2[T5, T4, T3, T2, T1, U]) Skip(p Parser[any]) Builder2[T5, T4, T3
 	return Builder2[T5, T4, T3, T2, T1, U]{b: b.b}
 }
 
-func (b Builder2[T5, T4, T3, T2, T1, U]) Accept(p Parser[T2]) Builder1[T5, T4, T3, T2, T1, U] {
+func (b Builder2[T5, T4, T3, T2, T1, U]) Then(p Parser[T2]) Builder1[T5, T4, T3, T2, T1, U] {
 	b.b.p2 = p
 	return Builder1[T5, T4, T3, T2, T1, U]{b: b.b}
 }
@@ -66,7 +66,7 @@ type Builder1[T5, T4, T3, T2, T1, U any] struct {
 	b builtParser[T5, T4, T3, T2, T1, U]
 }
 
-func Build1[T, U any](f func(t T) U) Builder1[any, any, any, any, T, U] {
+func Begin1[T, U any](f func(t T) U) Builder1[any, any, any, any, T, U] {
 	return Builder1[any, any, any, any, T, U]{
 		b: builtParser[any, any, any, any, T, U]{
 			f:     func(_, _, _, _ any, t T) U { return f(t) },
@@ -85,7 +85,7 @@ func (b Builder1[T5, T4, T3, T2, T1, U]) Skip(p Parser[any]) Builder1[T5, T4, T3
 	return b
 }
 
-func (b Builder1[T5, T4, T3, T2, T1, U]) Accept(p Parser[T1]) Builder0[T5, T4, T3, T2, T1, U] {
+func (b Builder1[T5, T4, T3, T2, T1, U]) Then(p Parser[T1]) Builder0[T5, T4, T3, T2, T1, U] {
 	b.b.p1 = p
 	return Builder0[T5, T4, T3, T2, T1, U]{b: b.b}
 }

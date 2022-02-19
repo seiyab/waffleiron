@@ -35,7 +35,7 @@ func Example_recursive() {
 
 	var p wi.Parser[obj]
 
-	p = wi.Build1(func(entries []wi.Tuple2[string, obj]) obj {
+	p = wi.Begin1(func(entries []wi.Tuple2[string, obj]) obj {
 		o := make(obj, 0)
 		for _, e := range entries {
 			o[e.Get0()] = e.Get1()
@@ -45,13 +45,13 @@ func Example_recursive() {
 		Skip(ws).
 		Skip(wi.Untype(wi.Rune('{'))).
 		Skip(ws).
-		Accept(wi.SepBy(
-			wi.Build2(wi.NewTuple2[string, obj]).
-				Accept(str).
+		Then(wi.SepBy(
+			wi.Begin2(wi.NewTuple2[string, obj]).
+				Then(str).
 				Skip(ws).
 				Skip(wi.Untype(wi.Rune(':'))).
 				Skip(ws).
-				Accept(wi.Ref(&p)).
+				Then(wi.Ref(&p)).
 				End(),
 			wi.Untype(wi.Between(
 				ws,

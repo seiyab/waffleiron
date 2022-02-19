@@ -7,11 +7,11 @@ import (
 )
 
 func TestBuild0(t *testing.T) {
-	p := wi.Build1(func(x int) int {
+	p := wi.Begin1(func(x int) int {
 		return x * 3
 	}).
 		Skip(wi.Untype(wi.Rune('['))).
-		Accept(wi.Int()).
+		Then(wi.Int()).
 		Skip(wi.Untype(wi.Rune(']'))).
 		End()
 
