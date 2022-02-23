@@ -10,6 +10,9 @@ type Builder3[T5, T4, T3, T2, T1, U any] struct {
 	b builtParser[T5, T4, T3, T2, T1, U]
 }
 
+// Begin3 can be used to construct a Parser in method chain style.
+// Results of Then() will be passed as arguments of f.
+// See example.
 func Begin3[T3, T2, T1, U any](f func(v3 T3, v2 T2, v1 T1) U) Builder3[any, any, T3, T2, T1, U] {
 	return Builder3[any, any, T3, T2, T1, U]{
 		b: builtParser[any, any, T3, T2, T1, U]{
