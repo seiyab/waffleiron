@@ -21,10 +21,10 @@ type runeParser struct {
 func (p runeParser) parse(r *reader) (rune, error) {
 	ch, _, err := r.readRune()
 	if err != nil {
-		return 0, errors.Wrapf(err, "at %s", r.pos)
+		return 0, errors.Wrapf(err, "at %s", r.locateAndString())
 	}
 	if ch != p.rn {
-		return 0, errors.Errorf("expected %q, found %q at %s", p.rn, ch, r.pos)
+		return 0, errors.Errorf("expected %q, found %q at %s", p.rn, ch, r.locateAndString())
 	}
 	return ch, nil
 }
@@ -40,9 +40,9 @@ type wordParser struct {
 
 // parse implements parser interface
 func (p wordParser) parse(r *reader) (string, error) {
-	overrun := int64(len(p.str)) > int64(len(r.str))-r.idx
+	overrun := len(p.str) > len(r.str)-r.idx
 	if overrun || !strings.HasPrefix(r.remainingString(), p.str) {
-		return "", errors.Errorf("expected %q, but not found at %s", p.str, r.pos)
+		return "", errors.Errorf("expected %q, but not found at %s", p.str, r.locateAndString())
 	}
 	s, err := r.consumeBytes(len(p.str))
 	if err != nil || s != p.str {
@@ -72,7 +72,7 @@ func (p regexpParser) parse(r *reader) (string, error) {
 	str := r.remainingString()
 	loc := p.re.FindStringIndex(str)
 	if len(loc) == 0 {
-		return "", errors.Errorf("expected to match %q at %s", p.re, r.pos)
+		return "", errors.Errorf("expected to match %q at %s", p.re, r.locateAndString())
 	}
 	if loc[0] != 0 {
 		panic("regex matched on loc[0] != 0. it might be bug. please submit an issue.")

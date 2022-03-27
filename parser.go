@@ -12,8 +12,8 @@ func Parse[T any](str string, psr Parser[T]) (T, error) {
 	if err != nil {
 		return value, err
 	}
-	if r.idx != int64(len(r.str)) {
-		return value, errors.Errorf("parser stopped at %s", r.pos)
+	if r.idx != len(r.str) {
+		return value, errors.Errorf("parser stopped at %s", r.locateAndString())
 	}
 	return value, nil
 }

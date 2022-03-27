@@ -3,6 +3,7 @@ package waffleiron_test
 import (
 	"fmt"
 	"regexp"
+	"strings"
 	"testing"
 
 	wi "github.com/seiyab/waffleiron"
@@ -416,5 +417,25 @@ func TestTrace(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestErrorPosition(t *testing.T) {
+	s := `- waffle
+- iron
+- parser ***
+- combinator`
+
+	p := wi.SepBy(wi.And(wi.Word("- "), wi.RegexpStr(`^[\w]+`)), wi.Rune('\n'))
+
+	_, err := wi.Parse(s, p)
+
+	if err == nil {
+		t.Errorf("expected error")
+	}
+
+	expected := wi.Position{Line: 2, Column: 8}.String()
+	if !strings.Contains(err.Error(), expected) {
+		t.Errorf("err.Error() = %q, want to contain %q", err.Error(), expected)
 	}
 }

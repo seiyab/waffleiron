@@ -1,15 +1,14 @@
 package waffleiron
 
 import (
-	"fmt"
 	"io"
 	"strings"
 )
 
 type reader struct {
 	str string
-	idx int64 // current reading index
-	pos Position
+	idx int // current reading index
+	loc Locator
 	trc *trace
 }
 
@@ -17,12 +16,13 @@ type reader struct {
 func newReader(s string) *reader {
 	return &reader{
 		str: s,
+		loc: NewLocator(s),
 	}
 }
 
 func (r *reader) readRune() (rune, int, error) {
 	sr := strings.NewReader(r.str)
-	sr.Seek(r.idx, io.SeekStart)
+	sr.Seek(int64(r.idx), io.SeekStart)
 	c, s, err := sr.ReadRune()
 	if err != nil {
 		return c, s, err
@@ -38,34 +38,37 @@ func (r *reader) remainingString() string {
 
 // consumeBytes consumes s bytes
 func (r *reader) consumeBytes(s int) (string, error) {
-	consumed := r.str[r.idx : r.idx+int64(s)]
+	consumed := r.str[r.idx : r.idx+s]
 	sr := strings.NewReader(consumed)
 	for {
-		c, s, err := sr.ReadRune()
+		_, _, err := sr.ReadRune()
 		if err == io.EOF {
+			r.idx += s
 			return consumed, nil
 		}
 		if err != nil {
 			return "", err
 		}
-		r.pos.column += 1
-		r.idx += int64(s)
-		if c == '\n' {
-			r.pos.line += 1
-			r.pos.column = 0
-		}
 	}
+}
+
+// locate returns current Position.String() of r.idx
+// it returns `unknown` if loc.Locate returns error
+func (r *reader) locateAndString() string {
+	p, e := r.loc.Locate(r.idx)
+	if e != nil {
+		return "unknown"
+	}
+	return p.String()
 }
 
 // try runs f
 // If f returns an error, r doesn't consume any bytes
 func (r *reader) try(f func() error) error {
-	var idx int64 = r.idx
-	var pos Position = r.pos
+	idx := r.idx
 	err := f()
 	if err != nil {
 		r.idx = idx
-		r.pos = pos
 		return err
 	}
 	return nil
@@ -79,17 +82,6 @@ func (r *reader) withTrace(name string, f func()) {
 	}
 	f()
 	r.trc = r.trc.parent
-}
-
-// Position represents a position in a string
-type Position struct {
-	line   int64
-	column int64
-}
-
-// String implements the fmt.Stringer interface
-func (p Position) String() string {
-	return fmt.Sprintf("line %d, column %d", p.line, p.column)
 }
 
 type trace struct {
